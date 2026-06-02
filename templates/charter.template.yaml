@@ -1,0 +1,95 @@
+# ============================================================================
+# nextRACI charter template — copy this file to charter.yaml and edit.
+# Validate with:  nextraci validate charter.yaml
+#
+# A charter declares the OPERATING CONSTITUTION of your mixed human + AI-agent
+# team: for every TYPE of action, who does it, who owns it, who is consulted /
+# informed, who approves it, and what happens when the approver is offline.
+# ============================================================================
+
+project: my-project          # the project this constitution governs
+
+# ---------------------------------------------------------------------------
+# ROLES — your role library, defined ONCE. Keep it minimal; merge roles before
+# adding them. Assign members to these roles below (RBAC). The default six:
+# ---------------------------------------------------------------------------
+roles:
+  - orchestrator    # plans, sequences, breaks ties, owns the roadmap
+  - engineer        # writes/changes code; owns the merge & deploy buttons
+  - domain_expert   # provides domain truth; cannot touch code; blocks via review
+  - researcher      # investigates unknowns; recommends; does NOT decide
+  - reviewer        # quality/correctness gate; can veto a merge
+  - monitor         # watches usage + tech health; raises issues; does NOT fix
+
+# ---------------------------------------------------------------------------
+# MEMBERS — appoint humans and agents to roles. Adding a member is ONE line.
+# type: human | agent. model: (agents only) e.g. claude-opus-4-8
+# ---------------------------------------------------------------------------
+members:
+  - { name: you,    type: human, role: orchestrator }
+  - { name: dev,    type: human, role: engineer }
+  # - { name: agent_name, type: agent, role: researcher, model: claude-opus-4-8 }
+
+# ---------------------------------------------------------------------------
+# CAPABILITIES — what each role may TOUCH. grant = allowed; deny = explicitly
+# forbidden. Every capability you list here must be touched by some action
+# (R2), and no role may both grant and deny the same one (R3).
+# ---------------------------------------------------------------------------
+capabilities:
+  orchestrator:  { grant: [spend, contact_users, read_analytics] }
+  engineer:      { grant: [edit_code, merge, deploy] }
+  domain_expert: { grant: [read_analytics], deny: [edit_code, merge, deploy, spend] }
+  researcher:    { grant: [read_analytics] }
+  reviewer:      { grant: [block_merge],    deny: [edit_code, deploy, spend] }
+  monitor:       { grant: [read_analytics], deny: [edit_code, merge, deploy, spend, contact_users] }
+
+# ---------------------------------------------------------------------------
+# ACTIONS — one entry per TYPE of action. Each MUST have exactly one
+# `accountable` role (R1). Optional fields: consulted, informed, capabilities,
+# low_risk, gate, suggestion_route.
+# ---------------------------------------------------------------------------
+actions:
+
+  # --- Minimal action: just R/A/C/I --------------------------------------
+  example_plan_work:
+    responsible: orchestrator
+    accountable: orchestrator          # exactly ONE accountable role
+    consulted:   [engineer]
+    informed:    []
+
+  # --- Action that touches a capability and needs a gate -----------------
+  example_merge:
+    responsible: engineer
+    accountable: reviewer              # reviewer outranks orchestrator here
+    consulted:   [engineer]
+    informed:    [orchestrator]
+    capabilities: [merge, block_merge] # the caps this action exercises
+    gate:
+      approver: reviewer
+      on_timeout: block                # block | escalate_to:<role> | proceed_if_low_risk
+      break_glass:                     # REQUIRED on every gate (R4)
+        who: engineer
+        condition: sev1_incident
+        requires_after_review: true
+
+  # --- A consulted-but-denied role needs a suggestion_route (R4) ----------
+  example_write_code:
+    responsible: engineer
+    accountable: engineer
+    consulted:   [domain_expert]       # domain_expert is denied edit_code...
+    capabilities: [edit_code]
+    suggestion_route:                  # ...so its input has somewhere to go
+      from: domain_expert
+      to:   engineer
+      as:   correction_request
+
+  # --- proceed_if_low_risk is legal ONLY with low_risk: true (R5) ---------
+  example_read_only:
+    responsible: monitor
+    accountable: orchestrator
+    capabilities: [read_analytics]
+    low_risk: true                     # required to use proceed_if_low_risk
+    gate:
+      approver: orchestrator
+      on_timeout: proceed_if_low_risk
+      break_glass: { who: orchestrator, condition: metric_alarm, requires_after_review: false }

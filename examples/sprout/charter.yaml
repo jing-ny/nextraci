@@ -1,0 +1,137 @@
+# Sprout — a houseplant-care reminder app.
+#
+# A complete, valid nextRACI charter that exercises every active rule (R1-R5).
+# Team: 2 humans + 6 agents. See ./README.md for the narrative.
+#
+# Validate me:  nextraci validate examples/sprout/charter.yaml
+
+project: sprout
+
+# --- The role library (defined once; members are assigned to roles) ----------
+roles:
+  - orchestrator    # plans, sequences, breaks ties, owns the roadmap
+  - engineer        # writes/changes code; owns the merge & deploy buttons
+  - domain_expert   # provides domain truth; CANNOT touch code; blocks via review
+  - researcher      # investigates unknowns; produces options; does NOT decide
+  - reviewer        # quality/correctness gate; can veto a merge
+  - monitor         # watches usage + tech health; raises issues; does NOT fix
+
+# --- The team: appoint humans and agents to roles (one line each) ------------
+members:
+  - { name: you,   type: human, role: orchestrator }
+  - { name: dev,   type: human, role: engineer }
+  - { name: atlas, type: agent, role: researcher,    model: claude-opus-4-8 }
+  - { name: fern,  type: agent, role: domain_expert, model: claude-opus-4-8 }
+  - { name: pulse, type: agent, role: monitor,       model: claude-haiku-4-5 }
+  - { name: cody,  type: agent, role: engineer,      model: claude-opus-4-8 }  # sub-actor under E
+  - { name: vera,  type: agent, role: reviewer,      model: claude-opus-4-8 }
+  - { name: otto,  type: agent, role: engineer,      model: claude-haiku-4-5 }  # ops sub-actor
+
+# --- Permissions: what each role may touch (granted or explicitly denied) -----
+capabilities:
+  orchestrator:  { grant: [spend, contact_users, read_analytics] }
+  engineer:      { grant: [edit_code, merge, deploy] }
+  domain_expert: { grant: [read_analytics], deny: [edit_code, merge, deploy, spend] }
+  researcher:    { grant: [read_analytics] }
+  reviewer:      { grant: [block_merge],    deny: [edit_code, deploy, spend] }
+  monitor:       { grant: [read_analytics], deny: [edit_code, merge, deploy, spend, contact_users] }
+
+# --- Action types: RACI per type, exactly one Accountable each ----------------
+actions:
+
+  A1_set_roadmap:
+    responsible: orchestrator
+    accountable: orchestrator
+    consulted:   [engineer, domain_expert, researcher, monitor]
+
+  A2_choose_technical_approach:
+    responsible: researcher          # Atlas investigates & recommends...
+    accountable: engineer            # ...but the engineer decides.
+    consulted:   [domain_expert, reviewer]
+    informed:    [orchestrator]
+
+  A3_establish_domain_fact:
+    responsible: domain_expert        # e.g. correct watering interval per species
+    accountable: domain_expert
+    consulted:   [researcher]
+    informed:    [orchestrator, engineer]
+
+  A4_write_code:
+    responsible: engineer             # held by Cody in practice
+    accountable: engineer
+    consulted:   [domain_expert]      # Fern's power over code is real but INDIRECT
+    informed:    [orchestrator]
+    capabilities: [edit_code]
+    suggestion_route:                 # Fern can't push code, so her input gets a route
+      from: domain_expert
+      to:   engineer
+      as:   correction_request        # must clear before A5 (merge) can pass
+
+  A5_merge_to_main:
+    responsible: engineer
+    accountable: reviewer             # the Reviewer outranks the Orchestrator here
+    consulted:   [engineer]
+    informed:    [orchestrator]
+    capabilities: [merge, block_merge]
+    gate:
+      approver: reviewer
+      on_timeout: block
+      break_glass: { who: engineer, condition: sev1_incident, requires_after_review: true }
+
+  A6_deploy:
+    responsible: engineer
+    accountable: engineer
+    consulted:   [reviewer]           # reviewer is consulted but denied deploy...
+    informed:    [orchestrator, monitor]
+    capabilities: [deploy]
+    suggestion_route:                 # ...so a deploy objection has somewhere to go
+      from: reviewer
+      to:   engineer
+      as:   deploy_objection
+
+  A7_incident_fix:
+    responsible: engineer             # Otto (ops sub-actor under engineer)
+    accountable: engineer
+    consulted:   [reviewer]
+    informed:    [orchestrator, monitor]
+    capabilities: [edit_code, deploy]
+    suggestion_route:
+      from: reviewer
+      to:   engineer
+      as:   fix_objection
+    gate:
+      approver: engineer
+      on_timeout: block
+      break_glass: { who: engineer, condition: sev1_incident, requires_after_review: true }
+
+  A8_interpret_analytics:
+    responsible: monitor              # Pulse watches & flags...
+    accountable: orchestrator         # ...you own the interpretation.
+    consulted:   [domain_expert]
+    informed:    [engineer]
+    capabilities: [read_analytics]
+    low_risk: true                    # reading/flagging only — nothing destructive
+    gate:
+      approver: orchestrator
+      on_timeout: proceed_if_low_risk # legal ONLY because low_risk: true (R5)
+      break_glass: { who: orchestrator, condition: metric_alarm, requires_after_review: false }
+
+  A9_communicate_with_users:
+    responsible: orchestrator         # an agent may DRAFT, but a human is accountable
+    accountable: orchestrator
+    consulted:   [domain_expert]
+    capabilities: [contact_users]
+    gate:
+      approver: orchestrator
+      on_timeout: block               # never auto-proceeds: not low_risk
+      break_glass: { who: orchestrator, condition: urgent_outage_notice, requires_after_review: true }
+
+  A10_spend_money:
+    responsible: any                  # anyone may REQUEST a spend...
+    accountable: orchestrator         # ...a human approves it.
+    consulted:   [engineer]
+    capabilities: [spend]
+    gate:
+      approver: orchestrator
+      on_timeout: block               # never auto-proceeds: not low_risk
+      break_glass: { who: orchestrator, condition: billing_outage, requires_after_review: true }

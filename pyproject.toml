@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nextraci"
+version = "0.1.0"
+description = "Who's allowed to do what, and who's accountable, on a team of humans and AI agents: a machine-checkable RACI charter + linter."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+authors = [{ name = "nextRACI contributors" }]
+keywords = ["ai-agents", "raci", "governance", "rbac", "accountability", "charter"]
+dependencies = [
+    "pydantic>=2.6",
+    "typer>=0.12",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+nextraci = "nextraci.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/jing-ny/nextraci"
+
+[tool.setuptools.packages.find]
+include = ["nextraci*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

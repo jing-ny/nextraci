@@ -1,0 +1,117 @@
+"""The ``nextraci`` command-line interface.
+
+* ``nextraci validate <charter.yaml>`` — parse + lint, with a per-rule report.
+* ``nextraci compile --target {humanlayer,langgraph} <charter.yaml>`` — STUB.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import typer
+from pydantic import ValidationError
+
+from .adapters import TARGETS
+from .linter import RULES, lint
+from .loader import load_charter
+
+app = typer.Typer(
+    add_completion=False,
+    help="nextRACI — validate and compile a team's operating constitution.",
+)
+
+# Reuse typer's underlying console colours without a hard dependency on rich.
+_GREEN = "\033[32m"
+_RED = "\033[31m"
+_DIM = "\033[2m"
+_BOLD = "\033[1m"
+_RESET = "\033[0m"
+
+
+def _echo(msg: str = "") -> None:
+    typer.echo(msg)
+
+
+@app.command()
+def validate(
+    charter_path: Path = typer.Argument(..., exists=True, readable=True,
+                                        help="Path to charter.yaml"),
+) -> None:
+    """Validate a charter against the schema and linter rules R1-R5 (R6 stub)."""
+    try:
+        charter = load_charter(charter_path)
+    except ValidationError as exc:
+        _echo(f"{_RED}{_BOLD}✗ schema error{_RESET} in {charter_path}")
+        for err in exc.errors():
+            loc = ".".join(str(p) for p in err["loc"]) or "<root>"
+            _echo(f"  {_RED}-{_RESET} {loc}: {err['msg']}")
+        raise typer.Exit(code=1)
+    except Exception as exc:  # malformed YAML, etc.
+        _echo(f"{_RED}{_BOLD}✗ could not load{_RESET} {charter_path}: {exc}")
+        raise typer.Exit(code=1)
+
+    errors = lint(charter)
+    by_rule: dict[str, list] = {}
+    for e in errors:
+        by_rule.setdefault(e.rule, []).append(e)
+
+    _echo(f"{_BOLD}nextRACI charter:{_RESET} {charter.project}  "
+          f"{_DIM}({charter_path}){_RESET}")
+    _echo(f"{_DIM}{len(charter.roles)} roles · {len(charter.members)} members · "
+          f"{len(charter.actions)} action types{_RESET}")
+    _echo()
+
+    for rule_id, title, _fn in RULES:
+        rule_errors = by_rule.get(rule_id, [])
+        stub = " (stub)" in title
+        if rule_errors:
+            _echo(f"{_RED}✗ {rule_id}{_RESET} {title}")
+            for e in rule_errors:
+                _echo(f"    {_RED}-{_RESET} {e.target}: {e.message}")
+        else:
+            mark = f"{_DIM}-{_RESET}" if stub else f"{_GREEN}✓{_RESET}"
+            _echo(f"{mark} {rule_id} {title}")
+
+    _echo()
+    if errors:
+        _echo(f"{_RED}{_BOLD}FAIL{_RESET} — {len(errors)} issue(s) found.")
+        raise typer.Exit(code=1)
+    _echo(f"{_GREEN}{_BOLD}PASS{_RESET} — charter is a valid operating constitution.")
+
+
+@app.command()
+def compile(  # noqa: A001 - this is the user-facing verb
+    charter_path: Path = typer.Argument(..., exists=True, readable=True,
+                                        help="Path to charter.yaml"),
+    target: str = typer.Option(..., "--target", "-t",
+                               help="humanlayer | langgraph"),
+) -> None:
+    """Compile a charter into runtime config for a target tool (STUB in v0.1)."""
+    if target not in TARGETS:
+        _echo(f"{_RED}unknown target {target!r}.{_RESET} "
+              f"choose one of: {', '.join(sorted(TARGETS))}")
+        raise typer.Exit(code=2)
+
+    try:
+        charter = load_charter(charter_path)
+    except (ValidationError, Exception) as exc:  # noqa: BLE001
+        _echo(f"{_RED}✗ could not load {charter_path}:{_RESET} {exc}")
+        raise typer.Exit(code=1)
+
+    # Validate before compiling: never emit config from a broken constitution.
+    errors = lint(charter)
+    if errors:
+        _echo(f"{_RED}✗ refusing to compile:{_RESET} charter fails "
+              f"{len(errors)} linter rule(s). Run `nextraci validate` first.")
+        raise typer.Exit(code=1)
+
+    _echo(f"{_DIM}# nextraci compile --target {target} (STUB){_RESET}")
+    _echo(TARGETS[target](charter))
+
+
+def main() -> None:  # console-script entry point
+    app()
+
+
+if __name__ == "__main__":  # pragma: no cover
+    main()
