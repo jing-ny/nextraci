@@ -1,5 +1,7 @@
 # nextRACI — who's allowed to do what, and who's accountable, on a team of humans and AI agents
 
+[![CI](https://github.com/jing-ny/nextraci/actions/workflows/ci.yml/badge.svg)](https://github.com/jing-ny/nextraci/actions/workflows/ci.yml)
+
 > When an AI agent does something on your team — ships code, sends a message,
 > spends money — and no human pressed the button, **who is accountable?**
 > nextRACI is one plain-language file that answers that up front, for every kind
