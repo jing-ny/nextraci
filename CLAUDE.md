@@ -23,20 +23,34 @@ maintainer may still be bilingual.)
   capability as roadmap. Honest scope boxes beat hype.
 - Brand is **nextRACI** (camelCase in prose; `nextraci` as the package/CLI token).
 
-## The four project agents
+## We govern this project with its own charter
 
-This repo defines four agents under `.claude/agents/`. Route work to them:
+nextRACI checks the operating constitution of human + AI-agent teams, so this repo
+runs on one too: **`governance/charter.yaml`** is the constitution for developing
+nextRACI itself, and `nextraci validate governance/charter.yaml` must pass. It names
+who is Responsible/Accountable/Consulted/Informed for each action type (set roadmap,
+implement, QA, review, merge, docs, release) and who signs off at each gate. When a
+process question comes up, the charter is the answer — not ad-hoc judgment.
 
+## The project agents (orchestrator + four workers)
+
+This repo defines five agents under `.claude/agents/`, mapped 1:1 to the members in
+`governance/charter.yaml`:
+
+- **orchestrator** — the entry point. Reads the charter, decides which agent does the
+  work and who reviews it, sequences steps, breaks ties. Plans/routes; does not write.
 - **writer** — all human-facing prose (README/SPEC/CONTRIBUTING/examples/essays,
   issue & PR text). Edits docs.
 - **coder** — Python changes (schema/loader/linter/cli/adapters). Edits code.
 - **reviewer** — independent, read-only review before merge/release. Reports only.
 - **qa** — runs tests + CLI + packaging smoke, confirms each rule fires. Reports only.
 
-Typical loop for a non-trivial change: **coder** implements → **qa** verifies →
-**reviewer** signs off (independent) → **writer** updates docs if behavior changed.
-Keep reviewer and qa independent of the change author — do not have the coder
-review its own work.
+**Start non-trivial work with the orchestrator.** It applies the charter: a code
+change follows **coder → qa → reviewer**, with **writer** updating docs if behavior
+changed. The charter makes the **reviewer** (not the coder) accountable for
+`A5_merge_to_main`, so a change author never approves its own merge; the human
+maintainer holds the break-glass authority. Keep reviewer and qa independent of the
+change author.
 
 ## Checker rules (keep code ⇄ docs in sync)
 

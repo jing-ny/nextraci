@@ -31,3 +31,6 @@ jobs:
 
       - name: Validate example charter
         run: nextraci validate examples/sprout/charter.yaml
+
+      - name: Validate the project's own governance charter
+        run: nextraci validate governance/charter.yaml

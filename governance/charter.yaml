@@ -1,0 +1,109 @@
+# nextRACI governs human + AI-agent teams with a machine-checkable charter — so the
+# nextRACI project governs ITSELF the same way. This is the operating constitution for
+# developing this repo: who does what, who is accountable, and who signs off.
+#
+# The members below correspond 1:1 to the agents in .claude/agents/. The orchestrator
+# reads this file to decide which agent does which task and who reviews it.
+#
+# Validate me:  nextraci validate governance/charter.yaml
+
+project: nextraci
+
+# --- The role library --------------------------------------------------------
+roles:
+  - orchestrator    # plans, sequences, routes work to agents, breaks ties, owns roadmap
+  - coder           # writes/changes the Python package; owns the merge button
+  - writer          # owns all human-facing prose (README/SPEC/docs/essays)
+  - reviewer        # independent correctness gate; can veto a merge; does NOT write
+  - qa              # runs tests/CLI/packaging; reports pass/fail; does NOT fix
+
+# --- The team: the human maintainer + the four working agents ----------------
+members:
+  - { name: maintainer, type: human, role: orchestrator }
+  - { name: writer,     type: agent, role: writer,     model: claude-sonnet-4-6 }
+  - { name: coder,      type: agent, role: coder,      model: claude-opus-4-8 }
+  - { name: reviewer,   type: agent, role: reviewer,   model: claude-opus-4-8 }
+  - { name: qa,         type: agent, role: qa,         model: claude-sonnet-4-6 }
+
+# --- Permissions: what each role may touch -----------------------------------
+capabilities:
+  orchestrator: { grant: [set_roadmap, publish_release] }
+  coder:        { grant: [edit_code, merge] }
+  writer:       { grant: [edit_docs] }
+  reviewer:     { grant: [block_merge], deny: [edit_code, merge, publish_release] }
+  qa:           { grant: [run_tests],   deny: [edit_code, merge, publish_release] }
+
+# --- Action types: RACI per type, exactly one Accountable each ----------------
+actions:
+
+  A1_set_roadmap:
+    responsible: orchestrator
+    accountable: orchestrator
+    consulted:   [coder, writer, reviewer, qa]
+    capabilities: [set_roadmap]
+
+  A2_implement_change:
+    responsible: coder
+    accountable: coder
+    consulted:   [writer]              # writer flags doc impact early
+    informed:    [orchestrator]
+    capabilities: [edit_code]
+
+  A3_qa_verify_change:
+    responsible: qa
+    accountable: qa
+    consulted:   [coder]
+    informed:    [orchestrator, reviewer]
+    capabilities: [run_tests]
+    suggestion_route:                  # qa can't fix, so a defect gets a route back
+      from: qa
+      to:   coder
+      as:   defect_report
+
+  A4_independent_review:
+    responsible: reviewer
+    accountable: reviewer
+    consulted:   [coder]
+    informed:    [orchestrator]
+    capabilities: [block_merge]
+    suggestion_route:                  # reviewer can't edit, so findings get a route
+      from: reviewer
+      to:   coder
+      as:   change_request
+
+  A5_merge_to_main:
+    responsible: coder
+    accountable: reviewer              # the reviewer outranks the coder on merge
+    consulted:   [qa]
+    informed:    [orchestrator]
+    capabilities: [merge, block_merge]
+    suggestion_route:                  # qa can't merge, so a QA concern gets a route
+      from: qa
+      to:   coder
+      as:   merge_blocker
+    gate:
+      approver: reviewer
+      on_timeout: block                # never auto-merges
+      break_glass: { who: orchestrator, condition: maintainer_override, requires_after_review: true }
+
+  A6_update_docs:
+    responsible: writer
+    accountable: writer
+    consulted:   [coder, reviewer]
+    informed:    [orchestrator]
+    capabilities: [edit_docs]
+
+  A7_publish_release:
+    responsible: orchestrator
+    accountable: orchestrator          # a human owns shipping to PyPI
+    consulted:   [coder, reviewer]
+    informed:    [qa]
+    capabilities: [publish_release]
+    suggestion_route:                  # reviewer can't publish, so an objection has a route
+      from: reviewer
+      to:   orchestrator
+      as:   release_objection
+    gate:
+      approver: orchestrator
+      on_timeout: block                # never auto-publishes
+      break_glass: { who: orchestrator, condition: hotfix_release, requires_after_review: true }
