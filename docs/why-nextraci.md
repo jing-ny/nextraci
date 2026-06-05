@@ -1,130 +1,191 @@
 # Why nextRACI
 
-*An AI agent on your team just shipped code, sent a message, or spent money — and
-no human pressed the button. Who answers for it?*
+*An AI agent on your team just shipped code, sent a message, or spent money — and no human pressed the button. Who owns the outcome?*
 
 ## The accountability gap
 
-Software teams used to have a comforting property: behind every action was a
-person who decided to take it. A deploy happened because an engineer ran it. A
-refund went out because someone in support approved it. When something went
-wrong, you could ask *who did this?* and get a name.
+Software teams used to have a useful property: behind every meaningful action, there was a person who chose to take it.
 
-AI agents quietly removed that property. An agent can now open a pull request,
-reply to a customer, reconcile an invoice, or escalate an incident — on its own
-schedule, with no human in the loop at the moment it acts. The work still gets
-done. But the question *who is accountable for it?* no longer has an automatic
-answer, because no human pulled the trigger.
+A deploy happened because an engineer ran it.
+A refund went out because support approved it.
+A vendor payment was made because finance released it.
 
-This is the accountability gap, and it is not a hypothetical. The moment you let
-an agent act unsupervised — which is the whole point of agents — you have created
-an action with a responsible *doer* (the agent) and, very often, no clearly named
-*owner*. That gap is invisible right up until the agent does something you have to
-answer for.
+When something went wrong, the first question was simple:
 
-## Why classic RACI breaks under agentic AI
+*Who did this?*
 
-For decades the standard tool for this was **RACI**: a simple chart naming, for
-each kind of work, who is **R**esponsible (does it), **A**ccountable (owns the
-outcome — exactly one person), **C**onsulted (gives input), and **I**nformed
-(kept in the loop). RACI is good precisely because it forces the uncomfortable
-question of single ownership.
+Usually, there was a name.
 
-But classic RACI carries a buried assumption: **a human starts every task.** The
-"Responsible" party is a person who decides to act; the chart describes how
-authority flows *around* that human-initiated work. Agentic AI breaks the
-assumption in two ways at once:
+AI agents weaken that assumption. An agent can now open a pull request, reply to a customer, reconcile an invoice, escalate an incident, or trigger a workflow on its own schedule. No human may be present at the moment the action happens. That is often the point of using agents.
 
-1. **The doer may not be human.** An agent can be Responsible for an action. RACI
-   has no native concept of a non-human actor with real permissions and real
-   limits.
-2. **There may be no human trigger at all.** The action can originate from the
-   agent's own loop. RACI never had to describe "what happens when the thing that
-   acts is also the thing that decided to act, and it isn't a person."
+The work still gets done. But the ownership chain becomes ambiguous.
 
-The result is that most teams adopting agents either write no RACI at all (and
-discover the gap during an incident) or write a slide-deck RACI that no tool can
-check and no agent can read. Neither survives contact with a real agent acting at
-3 a.m.
+The agent may be the immediate **doer**.
+The tool may hold the **permission**.
+The team may bear the **consequence**.
+But the human **owner** may never have been named.
 
-## What a charter looks like
+That is the accountability gap.
 
-nextRACI is one plain-language file — a **charter** — that closes the gap by
-answering three *independent* questions for every type of action on the team. The
-key insight is that these three questions get mixed up constantly, and separating
-them is most of the value:
+It is invisible until something fails: a bad merge, a wrong customer response, an unauthorized spend, a missed escalation, or an incident where everyone agrees the agent acted — but nobody can say who was accountable for allowing, approving, blocking, or overriding that action.
 
-| Question       | What it asks                     | Example |
-|----------------|----------------------------------|---------|
-| **Function**   | What do you *do*?                | Orchestrate, Build, Advise, Review, Watch |
-| **Permission** | What may you *touch*?            | `edit_code`, `merge`, `deploy`, `spend` — granted or explicitly denied |
-| **Authority**  | Whose call *wins* in a conflict? | Expressed via each action's single `accountable` |
+## Why classic RACI is not enough
 
-The proof these are genuinely independent: a domain expert can be **accountable**
-for whether a fact is correct, **denied** any permission to touch the code, yet
-able to **block** a merge on correctness grounds — three different axes, none
-implying the others.
+For decades, teams have used **RACI** to clarify ownership:
 
-A charter defines a small set of **roles** once (orchestrator, engineer, expert,
-reviewer, monitor), then *assigns* humans and agents to them — adding an agent is
-a one-line appointment, not a new rulebook. For each **type of action** (not each
-individual task), it names exactly one accountable role, who is consulted, what
-permissions the action touches, and — crucially — what happens when the party who
-should act is unavailable. Every approval step must declare a timeout behavior and
-a `break_glass` emergency path, so the rules can never silently deadlock, and an
-agent can never treat "low risk" as a quiet backdoor to act unsupervised.
+* **Responsible**: who does the work
+* **Accountable**: who owns the outcome
+* **Consulted**: who gives input
+* **Informed**: who is kept aware
 
-A built-in checker reads the charter and flags the gaps mechanically: an action
-nobody owns, two roles that both think they're in charge, a permission granted but
-never used, an approval step that could stall forever. The charter is not a
-diagram you draw and forget — it is a file your CI can verify.
+RACI is useful because it forces a hard rule: for each activity, there should be one clear accountable owner.
 
-## What it is, and what it isn't yet
+But classic RACI was built for human organizational workflows. It becomes ambiguous when the actor is no longer just a person, but an agent with delegated permissions and autonomous execution loops.
 
-Honesty is part of the pitch, so the scope box is explicit:
+Agentic AI breaks the model in two practical ways.
 
-- **Today, nextRACI writes and checks the charter.** You get a clear file format,
-  an automatic checker (rules R1–R5), worked examples, and a blank template. That
-  is a real, shippable thing: a machine-checkable accountability map for a mixed
-  human + agent team.
-- **Today, nextRACI does not run your team.** It does not intercept actions or
-  enforce approvals at the instant they happen. Tools like LangGraph, CrewAI, and
-  HumanLayer already *run* agents and pause them for sign-off. nextRACI sits one
-  level up and answers what they don't: *on this specific team, who is allowed to
-  do what, and who breaks a tie.*
-- **Turning the charter into live, enforced approvals is the roadmap, not a
-  claim.** The next milestone is a HumanLayer connector that compiles a charter
-  into real gates, plus a team-wide "who outranks whom" map and a check that it
-  has no impossible loops. That is stated as a plan, not as something that already
-  works.
+First, the **doer may not be human**. An agent can be responsible for an action in the operational sense: it writes the code, drafts the message, files the ticket, updates the system, or calls the API. Classic RACI has no native way to describe a non-human actor with real permissions, real limits, and real failure modes.
 
-## How it relates to ISO/IEC 42001 and the EU AI Act
+Second, the **trigger may not be human**. The action may originate from the agent's own loop: a schedule, a monitor, an event, a plan, or a tool call. No one "pressed the button" at the moment of execution.
 
-There are two levels at which "who is accountable for the AI" gets asked, and they
-are often conflated.
+This creates a predictable failure pattern. Teams either:
 
-The **governance level** is the boardroom and compliance question: who answers for
-the AI system *as a whole*? This is the concern behind standards like **ISO/IEC
-42001** (AI management systems) and the **EU AI Act** (risk tiers, obligations on
-providers and deployers). These frameworks are essential, but they operate at the
-altitude of policies, management systems, and documented responsibility — the
-slide deck and the audit trail.
+1. skip the accountability map entirely, and discover the gap during an incident; or
+2. create a slide-deck RACI that humans can read, but agents and CI systems cannot check.
 
-The **operating level** is the missing piece: a precise, machine-checkable charter
-for the *day-to-day*, where the AI agents themselves hold real roles, touch real
-permissions, and the rules are verified by a tool rather than asserted in a
-document. nextRACI lives here. It is the artifact that lets you say to an auditor —
-or to yourself, after an incident — "here is the exact file that named who owned
-this action, what the agent was and wasn't allowed to do, and what should have
-happened when the approver went dark," and then *run the checker to prove the file
-is internally consistent.*
+Neither is enough once agents can act at 3 a.m.
 
-Governance frameworks tell you that you must have accountability. nextRACI is one
-concrete, verifiable way to actually have it, down to the individual action an
-agent takes on its own.
+## What nextRACI is
 
----
+nextRACI is a machine-checkable accountability charter for teams that use both humans and AI agents.
 
-*nextRACI is open source (MIT). Start with the
-[README](../README.md), the worked example in [`examples/sprout/`](../examples/sprout/),
-or the format details in [SPEC.md](../SPEC.md).*
+It is one plain-language file that answers three separate questions for each class of action:
+
+| Question       | What it asks                   | Example                                     |
+| -------------- | ------------------------------ | ------------------------------------------- |
+| **Function**   | What role do you play?         | Orchestrate, Build, Advise, Review, Watch   |
+| **Permission** | What are you allowed to touch? | `edit_code`, `merge`, `deploy`, `spend`     |
+| **Authority**  | Whose call wins?               | The single accountable role for that action |
+
+The separation matters.
+
+A domain expert may be accountable for whether a fact is correct, denied permission to edit code, and still able to block a merge on correctness grounds.
+
+Those are three different axes:
+
+* accountability is not permission;
+* permission is not authority;
+* authority is not the same as doing the work.
+
+nextRACI makes those distinctions explicit.
+
+## What a charter contains
+
+A nextRACI charter defines a small set of roles once, such as:
+
+* orchestrator
+* engineer
+* domain expert
+* reviewer
+* monitor
+
+Then it appoints humans and agents to those roles.
+
+Adding an agent should be a one-line appointment, not a new governance model.
+
+For each type of action, the charter names:
+
+* the action being governed;
+* the role responsible for doing or initiating it;
+* exactly one accountable role;
+* who must be consulted;
+* who must be informed;
+* which permissions the action touches;
+* what approval is required, if any;
+* what happens if the approver is unavailable;
+* whether a `break_glass` emergency path exists;
+* what must be logged.
+
+This avoids two common failure modes:
+
+1. **silent deadlock** — an agent waits forever because approval rules have no timeout;
+2. **silent escalation** — an agent treats "low risk" as a backdoor to act without a named owner.
+
+Every action type must have an owner. Every approval path must say what happens when no one responds. Every emergency path must be explicit.
+
+## Why this should be a file, not a diagram
+
+A diagram can explain accountability.
+A charter can be checked.
+
+nextRACI includes a checker that reads the charter and flags structural gaps, such as:
+
+* an action with no accountable owner;
+* an action with more than one accountable owner;
+* a permission that is granted but never used;
+* an approval path with no timeout behavior;
+* a break-glass path with no named accountable role.
+
+The point is not to create another policy document. The point is to create an artifact that can live in the repo, be reviewed in pull requests, and fail CI when the accountability model is internally inconsistent.
+
+If agents are acting through code, the rules that govern them should be reviewable like code.
+
+## What nextRACI does today
+
+Today, nextRACI writes and checks the charter.
+
+It provides:
+
+* a clear charter format;
+* validation rules;
+* worked examples;
+* a blank template;
+* a checker that flags common accountability gaps.
+
+That is the current product: a machine-checkable accountability map for mixed human + agent teams.
+
+## What nextRACI does not do yet
+
+nextRACI does not currently run your agents.
+
+It does not intercept tool calls, enforce approvals at runtime, pause workflows, or decide whether a specific action should proceed in the moment.
+
+Tools such as LangGraph, CrewAI, and HumanLayer can orchestrate agents and introduce human approval gates. nextRACI sits one level above that. It answers the operating question those systems still need from the team:
+
+*For this action, on this team, who is allowed to do what — and who owns the outcome?*
+
+Runtime enforcement is the roadmap, not a current claim.
+
+The next milestone is to compile a nextRACI charter into live approval gates, starting with a HumanLayer connector. A later milestone is a team-wide authority graph that can detect impossible loops, circular escalation, and conflicting override rules.
+
+## How nextRACI relates to AI governance frameworks
+
+There are two levels of AI accountability.
+
+The first is the **governance level**: policies, management systems, risk classification, compliance obligations, audit evidence, and board-level responsibility.
+
+That is the level addressed by frameworks and regulations such as ISO/IEC 42001 and the EU AI Act.
+
+The second is the **operating level**: the day-to-day question of what happens when a specific agent takes a specific action with a specific permission inside a specific team.
+
+nextRACI lives at the operating level.
+
+It does not replace governance frameworks. It gives teams a concrete artifact those frameworks often require but do not prescribe in detail: a verifiable map of who owns each class of agent action, what the agent may touch, who must be consulted, and what should happen when normal approval paths fail.
+
+In an audit or incident review, nextRACI should let a team point to a file and say:
+
+*This is the charter that governed that action. It named the accountable owner, the agent's permissions, the required approval path, the timeout behavior, and the emergency override rule. The checker verified that the model was internally consistent.*
+
+Governance frameworks tell organizations they need accountability.
+
+nextRACI is one practical way to make that accountability explicit, reviewable, and machine-checkable at the level where agents actually act.
+
+## Get started
+
+nextRACI is open source under the MIT License.
+
+Start with:
+
+* [README](../README.md)
+* the worked example in [`examples/sprout/`](../examples/sprout/)
+* the format details in [SPEC.md](../SPEC.md)
