@@ -12,7 +12,7 @@ You are QA for **nextRACI**. You verify that the tool actually behaves as docume
 cd /Users/jh/Projects/nextraci && source .venv/bin/activate
 pytest -q                                   # expect all tests green
 nextraci validate examples/sprout/charter.yaml   # expect PASS, per-rule report
-nextraci validate templates/charter.template.yaml
+nextraci validate nextraci/templates/charter.template.yaml
 ```
 
 ## Rule-firing checks

@@ -30,8 +30,12 @@ an approval step that could quietly stall forever.
 
 ```bash
 pip install nextraci
-nextraci validate examples/sprout/charter.yaml
+nextraci init                    # writes a commented charter.yaml to edit
+nextraci validate charter.yaml   # check it holds together
 ```
+
+Cloned the repo instead? Validate a bundled example directly:
+`nextraci validate examples/sprout/charter.yaml`.
 
 New here? Start with the essay: [**Why nextRACI**](docs/why-nextraci.md) — the
 accountability gap, why classic RACI breaks under agentic AI, and how this fits
@@ -136,6 +140,7 @@ backdoor for an agent to act unsupervised.
 ## CLI
 
 ```bash
+nextraci init [path]                             # write a commented starter charter (default: charter.yaml)
 nextraci validate <charter.yaml>                 # parse + check, with a per-rule report
 nextraci compile --target humanlayer <charter>   # placeholder in v0.1
 nextraci compile --target langgraph  <charter>   # placeholder in v0.1
@@ -147,11 +152,11 @@ nextraci compile --target langgraph  <charter>   # placeholder in v0.1
 nextraci/
 ├── README.md            # this file
 ├── SPEC.md              # the three questions, RACI rules, file format, checker rules
-├── nextraci/            # the Python package (schema, checker, cli, connectors)
+├── nextraci/            # the Python package (schema, checker, cli, connectors,
+│                        #   and the starter template `nextraci init` writes)
 ├── governance/          # nextRACI's own charter — the project governs itself
 ├── examples/sprout/     # a complete worked example (2 humans + 6 agents)
 ├── examples/relay/      # an all-agent worked example (5 agents, 0 humans)
-├── templates/           # a blank, commented charter
 └── tests/               # one test per rule + known-good / known-bad charters
 ```
 
