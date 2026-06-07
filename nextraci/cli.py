@@ -1,5 +1,6 @@
 """The ``nextraci`` command-line interface.
 
+* ``nextraci init [path]`` — write a starter charter to edit.
 * ``nextraci validate <charter.yaml>`` — parse + lint, with a per-rule report.
 * ``nextraci compile --target {humanlayer,langgraph} <charter.yaml>`` — STUB.
 """
@@ -7,6 +8,7 @@
 from __future__ import annotations
 
 from importlib.metadata import PackageNotFoundError, version as _pkg_version
+from importlib.resources import files
 from pathlib import Path
 
 import typer
@@ -52,6 +54,35 @@ def _root(
     ),
 ) -> None:
     """nextRACI — validate and compile a team's operating constitution."""
+
+
+def _template_text() -> str:
+    return (files("nextraci") / "templates" / "charter.template.yaml").read_text(
+        encoding="utf-8"
+    )
+
+
+@app.command()
+def init(
+    charter_path: Path = typer.Argument(
+        Path("charter.yaml"),
+        help="Where to write the starter charter.",
+    ),
+    force: bool = typer.Option(
+        False, "--force", "-f",
+        help="Overwrite the file if it already exists.",
+    ),
+) -> None:
+    """Write a commented starter charter you can edit, then validate."""
+    if charter_path.exists() and not force:
+        _echo(f"{_RED}✗ {charter_path} already exists.{_RESET} "
+              f"Pass {_BOLD}--force{_RESET} to overwrite, or choose another path.")
+        raise typer.Exit(code=1)
+
+    charter_path.parent.mkdir(parents=True, exist_ok=True)
+    charter_path.write_text(_template_text(), encoding="utf-8")
+    _echo(f"{_GREEN}✓{_RESET} wrote starter charter to {_BOLD}{charter_path}{_RESET}")
+    _echo(f"  Edit it, then run: {_BOLD}nextraci validate {charter_path}{_RESET}")
 
 
 @app.command()

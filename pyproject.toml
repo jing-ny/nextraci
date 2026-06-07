@@ -29,5 +29,8 @@ Homepage = "https://github.com/jing-ny/nextraci"
 [tool.setuptools.packages.find]
 include = ["nextraci*"]
 
+[tool.setuptools.package-data]
+nextraci = ["templates/*.yaml"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
