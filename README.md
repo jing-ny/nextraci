@@ -141,7 +141,8 @@ backdoor for an agent to act unsupervised.
 
 ```bash
 agenraci init [path]                             # write a commented starter charter (default: charter.yaml)
-agenraci validate <charter.yaml>                 # parse + check, with a per-rule report
+agenraci validate <charter.yaml> [more.yaml...]  # parse + check, with a per-rule report
+agenraci validate --explain <charter.yaml>       # ...and a plain-language fix under each failure
 agenraci compile --target humanlayer <charter>   # placeholder in v0.1
 agenraci compile --target langgraph  <charter>   # placeholder in v0.1
 ```
@@ -199,15 +200,16 @@ agenraci/
 
 ## Roadmap
 
-- **v0.1 — write it and check it.** The charter format, the checker (R1–R6), the
-  Sprout example, and a template. ← you are here
+- **v0.1 — write it and check it.** The charter format, the checker (R1–R6) with
+  `validate --explain` plain-language fixes, worked examples (the Autopilot
+  flagship + others), a template, a GitHub Action, and a pre-commit hook. ← you are here
 - **v0.2 — first live connector.** A working HumanLayer connector that turns a
   charter into real approval gates, plus a richer authority graph beyond gate
   `escalate_to` edges (standing veto relations).
 - **v0.3 — LangGraph connector** + a small web view that renders the chart so
   non-engineers can read it.
-- **v0.4 — `agenraci lint --explain`** that names each gap or conflict in plain
-  language and suggests a fix.
+- **v0.4 — author ergonomics.** Inline checker findings in an editor, and a
+  reference mode that explains any rule on demand.
 
 ## FAQ
 

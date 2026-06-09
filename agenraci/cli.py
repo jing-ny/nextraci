@@ -35,6 +35,32 @@ def _echo(msg: str = "") -> None:
     typer.echo(msg)
 
 
+# Plain-language "what this means and how to fix it", keyed by rule id. Shown
+# under a failing rule when `validate --explain` is passed, for readers who
+# don't have the rule definitions memorised (governance/compliance included).
+_EXPLANATIONS: dict[str, str] = {
+    "R1": "Every action needs exactly one accountable role — the single person "
+          "who answers for the outcome. If two claim it, decide who finally owns "
+          "it and move the other to consulted; if none does, name the owner.",
+    "R2": "Permissions and actions must line up. Either have some action use this "
+          "capability, or drop it from the role's grant/deny — and any capability "
+          "an action touches must first be declared on a role.",
+    "R3": "A role can't both grant and deny the same capability. Pick one: if you "
+          "mean to forbid it, remove it from grant; if you mean to allow it, "
+          "remove it from deny.",
+    "R4": "An approval step must never be able to deadlock the team. Give the gate "
+          "a break_glass (an emergency path with a named owner), and give any "
+          "consulted-but-denied role a suggestion_route so its objection has "
+          "somewhere to go instead of being silently dropped.",
+    "R5": "Letting an action proceed on timeout is only allowed when it's tagged "
+          "low_risk: true. Either mark the action low_risk (if it truly is), or "
+          "change on_timeout to 'block' or 'escalate_to:<role>'.",
+    "R6": "Escalations form a loop, so a decision could escalate forever with "
+          "nobody able to settle it. Break the cycle — point one gate's "
+          "escalate_to at a role that can finally decide (often the human owner).",
+}
+
+
 def _version_callback(value: bool) -> None:
     if value:
         try:
@@ -85,7 +111,7 @@ def init(
     _echo(f"  Edit it, then run: {_BOLD}agenraci validate {charter_path}{_RESET}")
 
 
-def _validate_one(charter_path: Path) -> bool:
+def _validate_one(charter_path: Path, *, explain: bool = False) -> bool:
     """Validate a single charter, print its per-rule report, return True if clean."""
     try:
         charter = load_charter(charter_path)
@@ -117,6 +143,8 @@ def _validate_one(charter_path: Path) -> bool:
             _echo(f"{_RED}✗ {rule_id}{_RESET} {title}")
             for e in rule_errors:
                 _echo(f"    {_RED}-{_RESET} {e.target}: {e.message}")
+            if explain and rule_id in _EXPLANATIONS:
+                _echo(f"    {_DIM}↳ {_EXPLANATIONS[rule_id]}{_RESET}")
         else:
             mark = f"{_DIM}-{_RESET}" if stub else f"{_GREEN}✓{_RESET}"
             _echo(f"{mark} {rule_id} {title}")
@@ -133,17 +161,22 @@ def _validate_one(charter_path: Path) -> bool:
 def validate(
     charter_paths: list[Path] = typer.Argument(..., exists=True, readable=True,
                                                help="Path(s) to charter.yaml"),
+    explain: bool = typer.Option(
+        False, "--explain", "-e",
+        help="After each failing rule, print a plain-language fix in one line.",
+    ),
 ) -> None:
     """Validate one or more charters against the schema and linter rules R1-R6.
 
     Accepting several paths lets a CI job or a pre-commit hook check every
     charter in a repo in one call; the command exits non-zero if any fail.
+    Add --explain to turn each rule code into a plain-language fix.
     """
     ok = True
     for i, charter_path in enumerate(charter_paths):
         if i:
             _echo(f"{_DIM}{'─' * 60}{_RESET}")
-        ok = _validate_one(charter_path) and ok
+        ok = _validate_one(charter_path, explain=explain) and ok
 
     if not ok:
         raise typer.Exit(code=1)
