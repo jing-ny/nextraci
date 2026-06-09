@@ -20,9 +20,15 @@ one strong public moment — without over-promising the v0.2 runtime control pla
 ## Phase 0 — Pre-launch polish (Week 1) ✅ done
 - [x] CI: GitHub Actions (pytest + validate) on 3.11/3.12 + README badge — [#1](https://github.com/jing-ny/agenraci/issues/1)
 - [x] All-agent worked example (`examples/relay`, 5 agents 0 humans) — [#3](https://github.com/jing-ny/agenraci/issues/3)
-- [x] Demo: charter pair + VHS tape + walkthrough in `docs/demo/` — [#4](https://github.com/jing-ny/agenraci/issues/4) · *one step left: run `vhs docs/demo/demo.tape` to render the GIF and swap it into the README placeholder*
+- [x] Demo: charter pair + VHS tape + walkthrough in `docs/demo/` — [#4](https://github.com/jing-ny/agenraci/issues/4) · GIF rendered + embedded in README (PR [#27](https://github.com/jing-ny/agenraci/pull/27))
 - [x] README badges + GitHub topics & description — [#5](https://github.com/jing-ny/agenraci/issues/5)
 - [x] Seed good first issues — [#6](https://github.com/jing-ny/agenraci/issues/6) → opened [#10](https://github.com/jing-ny/agenraci/issues/10) [#11](https://github.com/jing-ny/agenraci/issues/11) [#12](https://github.com/jing-ny/agenraci/issues/12)
+
+## Launch-impact adds (CEO-review picks) — shipped in PR [#27](https://github.com/jing-ny/agenraci/pull/27)
+- [x] Flagship `examples/autopilot/` (autonomous coding team, 1 human + 4 agents) + demo GIF
+- [x] GitHub Action (`action.yml`) + pre-commit hook (`.pre-commit-hooks.yaml`); `validate` takes many paths
+- [x] `agenraci validate --explain` (plain-language fix per failing rule)
+- [x] Browser playground (`docs/playground/`, Pyodide) + `vercel.json` to deploy it
 
 ## Phase 1 — Essay + assets (Week 1-2)
 - [ ] Launch essay `docs/why-agenraci.md` (~800-1200 words, broad audience) — [#7](https://github.com/jing-ny/agenraci/issues/7)
