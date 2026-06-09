@@ -1,39 +1,32 @@
-# Hello-world — the smallest meaningful nextRACI entrypoint.
+# hello-world — the smallest charter that means something.
 #
-# A minimal valid charter with only 2 actions, 1 human + 1 agent,
-# and exactly one accountable role per action.
+# One human, one AI agent, two action types. It exists to show the single
+# idea at the heart of AgenRACI: the agent can *do* the work (Responsible)
+# while a human still *owns the outcome* (Accountable). Those are different
+# questions, and keeping them apart is the whole point.
 #
-# Validate me:
-#   nextraci validate examples/hello-world/charter.yaml
+# Validate it:  agenraci validate examples/hello-world/charter.yaml
 
 project: hello-world
 
-# --- The role library -------------------------------------------------------
-roles:
-  - owner
-  - builder
+roles: [maintainer, assistant]
 
-# --- The team: one human appointing one agent -------------------------------
 members:
-  - { name: you, type: human, role: owner }
-  - { name: agent, type: agent, role: builder, model: claude-haiku-4-5 }
+  - { name: you, type: human, role: maintainer }
+  - { name: Ada, type: agent, role: assistant, model: claude-opus-4-8 }
 
-# --- Permissions: what each role is explicitly allowed to touch ----------------
 capabilities:
-  owner: { grant: [coordinate] }
-  builder: { grant: [edit_code] }
+  assistant:  { grant: [edit_code] }   # the agent may change code...
+  maintainer: { grant: [merge] }       # ...but only you put it on main.
 
-# --- Action types ------------------------------------------------------------
 actions:
 
-  A1_log_request:
-    responsible: owner
-    accountable: owner
-    informed: [builder]
-    capabilities: [coordinate]
-
-  A2_fix_request:
-    responsible: builder
-    accountable: builder
-    consulted: [owner]
+  write_code:
+    responsible: assistant   # Ada writes the change
+    accountable: maintainer  # you answer for what it does
     capabilities: [edit_code]
+
+  merge_code:
+    responsible: maintainer
+    accountable: maintainer
+    capabilities: [merge]

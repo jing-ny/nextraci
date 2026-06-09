@@ -16,9 +16,9 @@ from pathlib import Path
 import pytest
 import yaml
 
-from nextraci.linter import lint
-from nextraci.loader import load_charter
-from nextraci.schema import Charter
+from agenraci.linter import lint
+from agenraci.loader import load_charter
+from agenraci.schema import Charter
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
@@ -46,6 +46,15 @@ def test_good_escalation_chain_passes():
 
 def test_sprout_passes_all_active_rules():
     errors = lint(load_charter(SPROUT))
+    assert errors == [], "\n".join(str(e) for e in errors)
+
+
+_EXAMPLE_CHARTERS = sorted((ROOT / "examples").glob("*/charter.yaml"))
+
+
+@pytest.mark.parametrize("charter_path", _EXAMPLE_CHARTERS, ids=lambda p: p.parent.name)
+def test_every_shipped_example_validates_clean(charter_path):
+    errors = lint(load_charter(charter_path))
     assert errors == [], "\n".join(str(e) for e in errors)
 
 
