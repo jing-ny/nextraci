@@ -13,9 +13,10 @@ one strong public moment — without over-promising the v0.2 runtime control pla
 
 ## ⚠️ Decide before launch day
 - [x] **Brand permanence.** The `next` prefix sat under an IP / brand-neutralization
-  gate (Next Core). Resolved 2026-06-09 by renaming to **AgenRACI** (`agenraci` token)
-  to avoid the gate entirely. Remaining external steps: claim the `agenraci` PyPI name
-  and confirm Next Core IP clearance for `agenraci`.
+  gate (Next Core). Resolved 2026-06-09 by renaming to **AgenRACI** (`agenraci` token),
+  which sidesteps the `next` brand entirely — so no Next Core IP clearance is needed.
+  PyPI name `agenraci` claimed 2026-06-09 (placeholder `0.1.0a0` reserves it; real
+  `0.1.0` ships on launch day).
 
 ## Phase 0 — Pre-launch polish (Week 1) ✅ done
 - [x] CI: GitHub Actions (pytest + validate) on 3.11/3.12 + README badge — [#1](https://github.com/jing-ny/agenraci/issues/1)
