@@ -31,11 +31,17 @@ runs:
 
     - name: Validate charter(s)
       shell: bash
+      # Pass the input through the environment, never interpolate it straight
+      # into the script — otherwise a caller who wires PR-controlled data into
+      # `charter` could inject shell commands.
+      env:
+        CHARTER: ${{ inputs.charter }}
       run: |
         shopt -s nullglob
-        files=( ${{ inputs.charter }} )
+        # Word-split + glob the space-separated pattern list on purpose.
+        files=( $CHARTER )
         if [ ${#files[@]} -eq 0 ]; then
-          echo "::error::no charter files matched '${{ inputs.charter }}'"
+          echo "::error::no charter files matched '$CHARTER'"
           exit 1
         fi
         agenraci validate "${files[@]}"

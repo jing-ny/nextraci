@@ -198,7 +198,9 @@ async function boot() {
   statusEl.textContent = "installing pydantic + pyyaml…";
   await pyodide.loadPackage("micropip");
   const micropip = pyodide.pyimport("micropip");
-  await micropip.install(["pydantic", "pyyaml"]);
+  // Bounded ranges so a future pydantic v3 / pyyaml v7 can't break the live
+  // playground overnight; ranges (not exact pins) keep a matching wheel resolvable.
+  await micropip.install(["pydantic>=2.6,<3", "pyyaml>=6,<7"]);
 
   statusEl.textContent = "loading the checker…";
   const sources = await Promise.all(
