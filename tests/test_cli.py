@@ -74,6 +74,51 @@ def test_validate_explain_prints_plain_language_fix(tmp_path, monkeypatch):
     assert "exactly one accountable role" not in plain.stdout
 
 
+def test_validate_rejects_duplicate_keys(tmp_path, monkeypatch):
+    """A duplicated key must fail loudly, not silently keep the last value.
+
+    Plain ``yaml.safe_load`` would drop the first ``actions:`` block; for a file
+    that is a team's source of truth, a vanishing rule is a trust bug.
+    """
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "dup.yaml").write_text(
+        "project: dup\n"
+        "roles: [a]\n"
+        "actions:\n"
+        "  x: { responsible: a, accountable: a }\n"
+        "actions:\n"  # second 'actions' key — would silently win under safe_load
+        "  y: { responsible: a, accountable: a }\n",
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(app, ["validate", "dup.yaml"])
+    assert result.exit_code == 1
+    assert "duplicate key" in result.stdout
+    assert "actions" in result.stdout
+
+
+def test_validate_allows_yaml_merge_keys(tmp_path, monkeypatch):
+    """The strict loader must not break legitimate YAML merge keys (`<<: *anchor`).
+
+    Rejecting duplicate keys is right; rejecting a charter that DRYs repeated
+    RACI blocks with an anchor is not.
+    """
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "merge.yaml").write_text(
+        "project: merge\n"
+        "roles: [owner]\n"
+        "actions:\n"
+        "  x: &base { responsible: owner, accountable: owner }\n"
+        "  y:\n"
+        "    <<: *base\n",
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(app, ["validate", "merge.yaml"])
+    assert result.exit_code == 0, result.stdout
+    assert "PASS" in result.stdout
+
+
 def test_init_custom_path_creates_parent_dirs(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     result = runner.invoke(app, ["init", "team/constitution.yaml"])
