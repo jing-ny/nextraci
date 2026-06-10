@@ -152,6 +152,13 @@ Capability *references* in actions are intentionally **not** checked here —
 that's R2's job, so the linter can report dead/undeclared capabilities with a
 helpful message.
 
+The loader also rejects a charter with a **duplicate YAML key** (for example two
+`actions:` blocks, or two actions of the same name in one block). Standard YAML
+silently keeps the last value; for a file that is a team's source of truth, a
+silently dropped rule is a correctness hazard, so the load fails with a
+line-numbered error instead. YAML anchors and merge keys (`<<: *anchor`) are
+still supported.
+
 ---
 
 ## 7. Linter rules

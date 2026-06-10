@@ -22,6 +22,11 @@ class _StrictLoader(yaml.SafeLoader):
     def construct_mapping(self, node, deep=False):  # type: ignore[override]
         seen: set = set()
         for key_node, _value_node in node.value:
+            # The merge key (``<<: *anchor``) is resolved by ``flatten_mapping``
+            # in the parent, not through a constructor — skip it so charters that
+            # DRY repeated blocks with anchors still load.
+            if key_node.tag == "tag:yaml.org,2002:merge":
+                continue
             key = self.construct_object(key_node, deep=deep)
             if key in seen:
                 raise yaml.constructor.ConstructorError(

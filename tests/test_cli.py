@@ -97,6 +97,28 @@ def test_validate_rejects_duplicate_keys(tmp_path, monkeypatch):
     assert "actions" in result.stdout
 
 
+def test_validate_allows_yaml_merge_keys(tmp_path, monkeypatch):
+    """The strict loader must not break legitimate YAML merge keys (`<<: *anchor`).
+
+    Rejecting duplicate keys is right; rejecting a charter that DRYs repeated
+    RACI blocks with an anchor is not.
+    """
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "merge.yaml").write_text(
+        "project: merge\n"
+        "roles: [owner]\n"
+        "actions:\n"
+        "  x: &base { responsible: owner, accountable: owner }\n"
+        "  y:\n"
+        "    <<: *base\n",
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(app, ["validate", "merge.yaml"])
+    assert result.exit_code == 0, result.stdout
+    assert "PASS" in result.stdout
+
+
 def test_init_custom_path_creates_parent_dirs(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     result = runner.invoke(app, ["init", "team/constitution.yaml"])
