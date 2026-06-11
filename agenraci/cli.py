@@ -206,7 +206,7 @@ def compile(  # noqa: A001 - this is the user-facing verb
 
     try:
         charter = load_charter(charter_path)
-    except (ValidationError, Exception) as exc:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001 - schema error, malformed YAML, etc.
         _echo(f"{_RED}✗ could not load {charter_path}:{_RESET} {exc}")
         raise typer.Exit(code=1)
 
