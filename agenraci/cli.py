@@ -186,6 +186,22 @@ def compile(  # noqa: A001 - this is the user-facing verb
     _echo(TARGETS[target](charter))
 
 
+@app.command()
+def schema() -> None:
+    """Print the charter JSON Schema (for editor autocomplete / external tools).
+
+    The schema is generated from the same pydantic models the checker uses, so
+    it never drifts from what `agenraci validate` accepts. Editors with the YAML
+    language server pick it up automatically from the `# yaml-language-server:
+    $schema=` line that `agenraci init` writes at the top of a new charter.
+    """
+    import json
+
+    from .schema import Charter
+
+    _echo(json.dumps(Charter.model_json_schema(), indent=2))
+
+
 def main() -> None:  # console-script entry point
     app()
 
