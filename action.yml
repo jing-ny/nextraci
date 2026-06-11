@@ -1,5 +1,5 @@
 name: AgenRACI validate
-description: Validate an AgenRACI accountability charter (rules R1-R6) and fail CI on any gap.
+description: RACI accountability charter checker for human + AI-agent teams — runs rules R1-R6 and fails CI on any gap.
 author: AgenRACI contributors
 branding:
   icon: check-circle
