@@ -28,6 +28,10 @@ def test_committed_schema_is_up_to_date():
     Editors fetch this file by URL for autocomplete, so it can't drift from what
     `agenraci validate` actually accepts. If this fails, regenerate it:
         agenraci schema > charter.schema.json
+
+    Note: this exact-equality check is coupled to pydantic's schema emission, so
+    a pydantic upgrade that reorders/renames `$defs` can red the build until the
+    file is regenerated. That's intended — a deliberate regen beats silent drift.
     """
     committed = json.loads(_SCHEMA_FILE.read_text(encoding="utf-8"))
     assert committed == Charter.model_json_schema(), (
