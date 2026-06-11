@@ -1,4 +1,4 @@
-name: AgenRACI validate
+name: AgenRACI — RACI charter checker
 description: RACI accountability charter checker for human + AI-agent teams — runs rules R1-R6 and fails CI on any gap.
 author: AgenRACI contributors
 branding:
